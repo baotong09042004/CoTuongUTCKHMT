@@ -24,13 +24,14 @@ RED = (255, 0, 0)
 GREEN = (0, 255, 0)  # Màu xanh lá cho các nước đi hợp lệ
 HIGHLIGHT = (0, 255, 0, 100)  # Màu xanh lá nhạt cho ô được chọn
 
-# Đường dẫn tuyệt đối tới file Constants.py
 CURRENT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Đi lên 2 cấp để tới thư mục "chinese game"
-BASE_DIR = os.path.dirname(os.path.dirname(CURRENT_DIR))
+# Đi lên 1 cấp để tới thư mục src
+SRC_DIR = os.path.dirname(CURRENT_DIR)
 
-# Đường dẫn tới thư mục assets/font
-ASSETS_PATH = os.path.join(BASE_DIR, 'assets')
+
+
+# Đường dẫn tới thư mục assets
+ASSETS_PATH = os.path.join(SRC_DIR, 'assets')
 FONT_PATH = os.path.join(ASSETS_PATH, 'font', 'Roboto-Regular.ttf')
-font = pygame.font.Font(FONT_PATH, 36)
+font =pygame.font.Font(FONT_PATH, 36)

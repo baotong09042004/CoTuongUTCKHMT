@@ -3,11 +3,14 @@ import sys
 import Constants 
 import Button
 import Guide
-import ChessMain
+import GameMain
 BG = pygame.transform.smoothscale(
     pygame.image.load("assets/img/bgmanhinhchinh.png"),
     (Constants.WIDTH, Constants.HEIGHT),
 )
+SCREEN=Constants.screen
+AI = None
+
 def draw_menu():
     
     button_play_ai = Button.Button(
@@ -41,7 +44,7 @@ def draw_menu():
 
 # Vòng lặp chính cho menu
 def menu_screen():
-    Constants.screen.blit(BG, (0, 0))
+    SCREEN.blit(BG, (0, 0))
 
     while True:
 
@@ -50,7 +53,7 @@ def menu_screen():
 
         for button in [button_play_ai, button_play_pvp, button_guide]:
             button.changeColor(PLAY_MOUSE_POS)
-            button.update(Constants.screen)
+            button.update(SCREEN)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -58,13 +61,12 @@ def menu_screen():
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_pos = event.pos 
-                if button_play_ai.checkForInput(mouse_pos):
-                    ChessMain.game_screen()
-                elif button_play_pvp.checkForInput(mouse_pos):
-                    ChessMain.game_screen()
+                if button_play_ai.checkForInput(PLAY_MOUSE_POS):
+                    GameMain.game_screen(play_with_ai=True)
+                elif button_play_pvp.checkForInput(PLAY_MOUSE_POS):
+                    GameMain.game_screen(play_with_ai=False)
                 elif button_guide.checkForInput(mouse_pos):
                     Guide.guide_screen()
                     
-        pygame.display.flip()
-if __name__ == "__main__":
-    menu_screen()      
+        pygame.display.update()
+    

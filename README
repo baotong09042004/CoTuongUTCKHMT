@@ -1,0 +1,66 @@
+# Chinese Chess Game (Cờ Tướng)
+
+Một trò chơi cờ tướng được phát triển bằng Python và Pygame, hỗ trợ chơi 2 người hoặc chơi với AI.
+
+## Tính năng
+
+- 🎮 Hai chế độ chơi:
+  - Chơi 2 người (Player vs Player)
+  - Chơi với máy (Player vs AI)
+- 🤖 AI thông minh sử dụng thuật toán Minimax với Alpha-Beta Pruning
+- 🎯 Hiển thị các nước đi hợp lệ
+- 🎨 Giao diện đồ họa đẹp mắt với hình ảnh quân cờ HD
+- 📖 Hướng dẫn luật chơi tích hợp
+
+## Cấu trúc dự án
+chinese game/
+├── src/
+│ ├── main.py # Điểm khởi đầu của ứng dụng
+│ ├── Menu.py # Màn hình menu chính
+│ ├── GameMain.py # Logic game chính
+│ ├── ChessChineseEngine.py # Engine cờ tướng
+│ ├── AIEngine.py # AI và thuật toán tìm kiếm
+│ ├── Constants.py # Các hằng số
+│ ├── Button.py # Xử lý nút bấm
+│ ├── Guide.py # Màn hình hướng dẫn
+│ └── Win.py # Màn hình chiến thắng
+├── assets/
+│ └── img/ # Thư mục chứa hình ảnh
+| |__ font/ # Thư mục chứa font
+└── README.md
+
+## Cách chơi
+
+1. Khởi động game và chọn chế độ chơi từ menu chính:
+   - "Hai người chơi" để chơi với người khác
+   - "Chơi với máy" để chơi với AI
+   - "Luật chơi" để xem hướng dẫn
+
+2. Trong game:
+   - Click vào quân cờ để chọn
+   - Các nước đi hợp lệ sẽ được highlight:
+     - Màu xanh lá: nước đi thường
+     - Màu cam: nước ăn quân
+     - Màu đỏ: nước ăn tướng
+     - Màu tím: nước chiếu tướng
+
+3. Luật chơi cơ bản:
+   - Quân đỏ đi trước
+   - Mục tiêu là chiếu bí tướng đối phương
+   - Mỗi quân có cách di chuyển riêng theo luật cờ tướng
+
+## Cài đặt
+
+1. Đảm bảo bạn đã cài đặt Python 3.x
+2. Cài đặt thư viện Pygame:
+
+## Tính năng AI
+
+AI trong game sử dụng các kỹ thuật nâng cao:
+- Thuật toán Minimax với Alpha-Beta Pruning
+- Đánh giá bàn cờ dựa trên:
+  - Giá trị quân cờ
+  - Vị trí chiến lược
+  - Kiểm soát trung tâm
+  - Bảo vệ tướng
+  - Khả năng di chuyển

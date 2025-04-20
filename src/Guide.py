@@ -42,4 +42,4 @@ def guide_screen():
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if button_back.checkForInput(PLAY_MOUSE_POS):
                     Menu.menu_screen()
-        pygame.display.flip()
+        pygame.display.update()
