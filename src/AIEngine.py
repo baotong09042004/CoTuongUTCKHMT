@@ -1,4 +1,3 @@
-# src/frontend/AIEngine.py
 import random
 import ChessChineseEngine
 
@@ -119,7 +118,18 @@ def findBestMove(gs, validMoves):
     global nextMove
     nextMove = None
 
-    depth = 3 if len(validMoves) < 30 else 2
+    # Điều chỉnh độ sâu tìm kiếm dựa vào giai đoạn và số quân còn lại
+    total_pieces = sum(1 for row in gs.board for piece in row if piece != "--")
+    
+    if total_pieces <= 5:  # Cuối game, ít quân
+        depth = 6
+    elif total_pieces <= 10:  # Gần cuối game
+        depth = 4
+    elif len(validMoves) < 20:  # Giữa game, ít nước đi
+        depth = 3
+    else:  # Đầu game
+        depth = 2
+
     orderedMoves = moveOrdering(gs, validMoves)
     findMoveNegaMaxAlphaBeta(gs, orderedMoves, depth, -CHECKMATE, CHECKMATE, 1 if gs.redToMove else -1, depth)
     return nextMove
@@ -153,22 +163,77 @@ def findMoveNegaMaxAlphaBeta(gs, validMoves, depth, alpha, beta, turnMultiplier,
 
 def scoreBoard(gs):
     if gs.checkMate:
-        return -CHECKMATE if gs.redToMove else CHECKMATE
+        # Tăng giá trị chiếu hết và thêm hệ số dựa vào số nước đi
+        if gs.redToMove:
+            return -CHECKMATE - len(gs.moveLog)  # Ưu tiên chiếu hết sớm
+        else:
+            return CHECKMATE + len(gs.moveLog)
     elif gs.staleMate:
         return STALEMATE
 
     score = 0
+    # Material score
+    material_difference = 0
+    remaining_pieces = {'r': 0, 'b': 0}
+    
     for row in range(10):
         for col in range(9):
             piece = gs.board[row][col]
             if piece != "--":
                 piece_type = piece[2:]
+                color = piece[0]
+                remaining_pieces[color] += 1
                 base_score = PIECE_SCORES.get(piece_type, 0)
                 position_score = getPositionScore(piece, row, col)
+                
                 if piece.startswith('r_'):
                     score += base_score + position_score
+                    material_difference += base_score
                 else:
                     score -= base_score + position_score
+                    material_difference -= base_score
+
+    # Endgame bonuses
+    if abs(material_difference) > 3000:  # Một bên có lợi thế lớn
+        winning_side = 1 if material_difference > 0 else -1
+        if remaining_pieces['r' if winning_side > 0 else 'b'] > remaining_pieces['b' if winning_side > 0 else 'r']:
+            # Thưởng thêm cho việc đẩy tướng đối phương vào góc
+            enemy_king_row = gs.blackKingLocation[0] if winning_side > 0 else gs.redKingLocation[0]
+            enemy_king_col = gs.blackKingLocation[1] if winning_side > 0 else gs.redKingLocation[1]
+            
+            # Khuyến khích đẩy tướng địch vào góc
+            distance_from_center = abs(4 - enemy_king_col) + abs(5 - enemy_king_row)
+            score += winning_side * distance_from_center * 50
+
+    # Add strategic bonuses
+    if gs.redToMove:
+        # Tăng điểm thưởng cho việc tấn công tướng đối phương
+        for move in gs.getValidMoves():
+            if move.pieceCaptured:
+                if move.pieceCaptured[2:] == 'king':
+                    score += 2000  # Tăng mạnh điểm thưởng cho việc ăn được tướng
+                else:
+                    score += PIECE_SCORES.get(move.pieceCaptured[2:], 0) * 0.1  # Thưởng nhỏ cho việc có thể ăn quân
+        
+        # Kiểm tra nếu có thể chiếu
+        gs.redToMove = False  # Tạm thời đổi lượt để kiểm tra
+        if gs.inCheck():
+            score += 300  # Thưởng cho việc chiếu
+        gs.redToMove = True
+    else:
+        # Tương tự cho quân đen
+        for move in gs.getValidMoves():
+            if move.pieceCaptured:
+                if move.pieceCaptured[2:] == 'king':
+                    score -= 2000
+                else:
+                    score -= PIECE_SCORES.get(move.pieceCaptured[2:], 0) * 0.1
+        
+        gs.redToMove = True
+        if gs.inCheck():
+            score -= 300
+        gs.redToMove = False
+
     return score
 
 
@@ -199,10 +264,28 @@ def moveOrdering(gs, validMoves):
     moveScores = []
     for move in validMoves:
         moveScore = 0
+        # Capture moves
         if move.pieceCaptured != "--":
-            moveScore += PIECE_SCORES.get(move.pieceCaptured[2:], 0)
-        if is_move_safe(gs, move):
+            moveScore += PIECE_SCORES.get(move.pieceCaptured[2:], 0) * 2  # Double the value of captures
+        
+        # Check moves
+        gs.makeMove(move)
+        if gs.inCheck:
+            moveScore += 300
+        gs.undoMove()
+        
+        # Center control
+        if move.endRow in [4,5] and move.endCol in [4,5]:
             moveScore += 50
+            
+        # King safety
+        if is_move_safe(gs, move):
+            moveScore += 100
+            
+        # Piece development
+        if move.pieceMoved[2:] in ['horse', 'elephant', 'guard'] and move.startRow in [0,9]:
+            moveScore += 30
+            
         moveScores.append((moveScore, move))
     moveScores.sort(key=lambda x: x[0], reverse=True)
     return [move for _, move in moveScores]

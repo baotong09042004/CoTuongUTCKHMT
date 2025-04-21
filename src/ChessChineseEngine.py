@@ -93,7 +93,7 @@ class GameState:
     def getValidMoves(self):
         """
         Lấy tất cả các nước đi hợp lệ cho người chơi hiện tại.
-        Một nước đi hợp lệ là nước đi không để tướng bị chiếu.
+        Một nước đi hợp lệ là nước đi không để tướng bị chiếu và không để hai tướng đối mặt.
         
         Returns:
             list: Danh sách các nước đi hợp lệ
@@ -101,15 +101,20 @@ class GameState:
         # 1. Lấy tất cả nước đi có thể
         moves = self.getAllPossibleMoves()
         
-        # 2. Kiểm tra từng nước đi có gây chiếu tướng không
+        # 2. Kiểm tra từng nước đi
         for i in range(len(moves) - 1, -1, -1):
             self.makeMove(moves[i])
-            self.redToMove = not self.redToMove
             
-            if self.inCheck():
+            # Kiểm tra hai tướng có đối mặt không
+            if self._kingsAreFacing():
                 moves.remove(moves[i])
+            else:
+                # Kiểm tra nước đi có gây chiếu tướng không
+                self.redToMove = not self.redToMove
+                if self.inCheck():
+                    moves.remove(moves[i])
+                self.redToMove = not self.redToMove
             
-            self.redToMove = not self.redToMove
             self.undoMove()
 
         # 3. Kiểm tra kết thúc game
@@ -123,6 +128,27 @@ class GameState:
 
         return moves
 
+    def _kingsAreFacing(self):
+        """
+        Kiểm tra xem hai tướng có đối mặt nhau không.
+        
+        Returns:
+            bool: True nếu hai tướng đối mặt, False nếu không
+        """
+        # Nếu hai tướng không cùng cột thì không đối mặt
+        if self.redKingLocation[1] != self.blackKingLocation[1]:
+            return False
+            
+        col = self.redKingLocation[1]
+        startRow = min(self.redKingLocation[0], self.blackKingLocation[0])
+        endRow = max(self.redKingLocation[0], self.blackKingLocation[0])
+        
+        # Kiểm tra có quân nào ở giữa hai tướng không
+        for row in range(startRow + 1, endRow):
+            if self.board[row][col] != "--":
+                return False
+        return True
+            
     def inCheck(self):
         """
         Kiểm tra xem người chơi hiện tại có đang bị chiếu không.
